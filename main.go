@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/KrishKoria/ByteLink/handler"
+	"github.com/KrishKoria/ByteLink/store"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +14,16 @@ func main() {
 			"message": "Hello World",
 		})
 	})
+
+	r.POST("/create", func(c *gin.Context) {
+		handler.CreateShortURL(c)
+	})
+
+	r.GET("/:shortURL", func(c *gin.Context) {
+		handler.HandleRedirect(c)
+	})
+
+	store.InitializeStoreService()
 
 	err := r.Run(":8080")
 	if err != nil {
