@@ -38,6 +38,8 @@ func SaveMapping(shortUrl string, longUrl string, userId string) {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to save mapping: %v", err))
 	}
+	fmt.Printf("Saved mapping: %s -> %s\n", shortUrl, longUrl)
+
 }
 
 func GetLongUrl(shortUrl string) string {
@@ -45,5 +47,6 @@ func GetLongUrl(shortUrl string) string {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to get long URL: %v", err))
 	}
+	fmt.Printf("Retrieved long URL: %s -> %s\n", shortUrl, longUrl)
 	return longUrl
 }

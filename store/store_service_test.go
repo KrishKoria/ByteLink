@@ -12,14 +12,14 @@ func init() {
 }
 
 func TestStoreInit(t *testing.T) {
-	assert.Truef(t, testStore.client != nil, "Expected client to be initialized")
+	assert.True(t, testStore.client != nil, "Expected client to be initialized")
 }
 
 func TestSetAndGet(t *testing.T) {
 	initialURL := "https://www.google.com"
-	shortURL := "test"
-	userUUID := "test-user"
-	SaveMapping(initialURL, shortURL, userUUID)
+	userUUID := "e0dba740-fc4b-4977-872c-d360239e6b1a"
+	shortURL := "Jsz4k57oAX"
+	SaveMapping(shortURL, initialURL, userUUID)
 	longURL := GetLongUrl(shortURL)
 	assert.Equal(t, initialURL, longURL)
 }
