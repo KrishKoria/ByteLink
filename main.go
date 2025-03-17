@@ -9,11 +9,7 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
+	r.StaticFile("/", "./index.html")
 
 	r.POST("/create", func(c *gin.Context) {
 		handler.CreateShortURL(c)

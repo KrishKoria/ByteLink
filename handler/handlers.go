@@ -31,5 +31,9 @@ func CreateShortURL(c *gin.Context) {
 func HandleRedirect(c *gin.Context) {
 	shortUrl := c.Param("shortURL")
 	initialURL := store.GetLongUrl(shortUrl)
-	c.Redirect(302, initialURL)
+	if initialURL == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
+		return
+	}
+	c.Redirect(http.StatusFound, initialURL)
 }
