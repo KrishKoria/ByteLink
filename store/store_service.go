@@ -20,7 +20,7 @@ const CacheDuration = 1 * time.Hour
 
 func InitializeStoreService() *StoreService {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "127.0.0.1:6379",
 		Password: "",
 		DB:       0,
 	})
@@ -33,7 +33,7 @@ func InitializeStoreService() *StoreService {
 	return service
 }
 
-func SaveMapping(shortUrl string, longUrl string) {
+func SaveMapping(shortUrl string, longUrl string, userId string) {
 	err := service.client.Set(ctx, shortUrl, longUrl, CacheDuration).Err()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to save mapping: %v", err))
