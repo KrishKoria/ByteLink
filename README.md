@@ -12,6 +12,7 @@ ByteLink is a URL shortening service built with Go and Redis. It allows users to
 - Store URL mappings in Redis
 - Redirect short URLs to their original long URLs
 - Simple and efficient URL shortening algorithm using SHA-256 and Base58 encoding
+- Interactive frontend for creating short URLs
 
 ## Installation
 
@@ -36,16 +37,13 @@ ByteLink is a URL shortening service built with Go and Redis. It allows users to
     go run main.go
     ```
 
-2. Create a short URL:
-    - Send a POST request to `http://localhost:8080/create` with the following JSON body:
-        ```json
-        {
-            "long_url": "https://www.example.com",
-            "user_id": "your-unique-user-id"
-        }
-        ```
+2. Open the frontend:
+    - Navigate to `http://localhost:8080/` in your browser.
 
-3. Redirect to the long URL:
+3. Create a short URL:
+    - Use the form on the frontend to enter the long URL and user ID, then click "Create Short URL".
+
+4. Redirect to the long URL:
     - Access the short URL in your browser, e.g., `http://localhost:8080/{shortURL}`.
 
 ## API Endpoints
