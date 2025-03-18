@@ -17,6 +17,11 @@ type StoreService struct {
 	db     *database.Queries
 }
 
+type URLMapping struct {
+	ShortURL string `json:"short_url"`
+	LongURL  string `json:"long_url"`
+}
+
 var (
 	ctx     = context.Background()
 	service = &StoreService{}
@@ -118,4 +123,26 @@ func GetLongUrlPublic(shortUrl string) string {
 	}
 
 	return dbLongUrl
+}
+
+func GetMappingsByUserID(userId string) []URLMapping {
+	if userId == "" {
+		return []URLMapping{}
+	}
+
+	mappings, err := service.db.GetMappingsByUserID(ctx, userId)
+	if err != nil {
+		fmt.Printf("Error retrieving mappings for user %s: %v\n", userId, err)
+		return []URLMapping{}
+	}
+
+	result := make([]URLMapping, len(mappings))
+	for i, mapping := range mappings {
+		result[i] = URLMapping{
+			ShortURL: mapping.ShortUrl,
+			LongURL:  mapping.LongUrl,
+		}
+	}
+
+	return result
 }

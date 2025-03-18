@@ -10,6 +10,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.StaticFile("/", "./index.html")
+	store.InitializeStoreService()
 
 	r.POST("/create", func(c *gin.Context) {
 		handler.CreateShortURL(c)
@@ -23,7 +24,9 @@ func main() {
 		handler.GetUserURL(c)
 	})
 
-	store.InitializeStoreService()
+	r.GET("/api/urls", func(c *gin.Context) {
+		handler.GetUserURLs(c)
+	})
 
 	err := r.Run(":8080")
 	if err != nil {

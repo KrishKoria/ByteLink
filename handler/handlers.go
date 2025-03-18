@@ -61,5 +61,10 @@ func GetUserURL(c *gin.Context) {
 		"short_url": shortUrl,
 		"long_url":  longUrl,
 	})
-	c.Redirect(http.StatusFound, longUrl)
+}
+
+func GetUserURLs(c *gin.Context) {
+	userId := c.Query("user_id")
+	urls := store.GetMappingsByUserID(userId)
+	c.JSON(http.StatusOK, gin.H{"urls": urls})
 }
