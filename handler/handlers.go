@@ -30,10 +30,36 @@ func CreateShortURL(c *gin.Context) {
 
 func HandleRedirect(c *gin.Context) {
 	shortUrl := c.Param("shortURL")
-	initialURL := store.GetLongUrl(shortUrl)
+	initialURL := store.GetLongUrlPublic(shortUrl)
 	if initialURL == "" {
 		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
 		return
 	}
 	c.Redirect(http.StatusFound, initialURL)
+}
+
+func GetUserURL(c *gin.Context) {
+	shortUrl := c.Query("short_url")
+	userId := c.Query("user_id")
+
+	if shortUrl == "" || userId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing required parameters",
+		})
+		return
+	}
+
+	longUrl := store.GetLongUrl(shortUrl, userId)
+	if longUrl == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "URL not found or not authorized",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"short_url": shortUrl,
+		"long_url":  longUrl,
+	})
+	c.Redirect(http.StatusFound, longUrl)
 }

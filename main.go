@@ -19,6 +19,10 @@ func main() {
 		handler.HandleRedirect(c)
 	})
 
+	r.GET("/api/url", func(c *gin.Context) {
+		handler.GetUserURL(c)
+	})
+
 	store.InitializeStoreService()
 
 	err := r.Run(":8080")
