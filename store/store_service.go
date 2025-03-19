@@ -54,21 +54,46 @@ func InitializeStoreService() *StoreService {
 }
 
 func SaveMapping(shortUrl string, longUrl string, userId string) {
-	id := uuid.New()
-	err := service.db.SaveMapping(ctx, database.SaveMappingParams{
-		ID:       id,
+	var urlId uuid.UUID
+	existingId, err := service.db.GetURLIdByLongURL(ctx, longUrl)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			urlId = uuid.New()
+			err = service.db.SaveURL(ctx, database.SaveURLParams{
+				ID:      urlId,
+				LongUrl: longUrl,
+			})
+			if err != nil {
+				panic(fmt.Sprintf("Failed to save URL: %v", err))
+			}
+		} else {
+			panic(fmt.Sprintf("Failed to query URL: %v", err))
+		}
+	} else {
+		if uuidStr, ok := existingId.(string); ok {
+			parsedUUID, parseErr := uuid.Parse(uuidStr)
+			if parseErr != nil {
+				panic(fmt.Sprintf("Failed to parse UUID: %v", parseErr))
+			}
+			urlId = parsedUUID
+		} else {
+			panic("Unexpected ID type from database")
+		}
+	}
+	mappingId := uuid.New()
+	err = service.db.SaveMapping(ctx, database.SaveMappingParams{
+		ID:       mappingId,
 		ShortUrl: shortUrl,
-		LongUrl:  longUrl,
-		Userid:   userId,
+		UrlID:    urlId,
+		UserID:   userId,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("Failed to save mapping: %v", err))
 	}
-	cacheKey := fmt.Sprintf("%s:%s", shortUrl, userId)
-	err = service.client.Set(ctx, cacheKey, longUrl, CacheDuration).Err()
-	if err != nil {
-		panic(fmt.Sprintf("Failed to save mapping: %v", err))
-	}
+	userCacheKey := fmt.Sprintf("%s:%s", shortUrl, userId)
+	service.client.Set(ctx, userCacheKey, longUrl, CacheDuration)
+	service.client.Set(ctx, shortUrl, longUrl, CacheDuration)
+
 	fmt.Printf("Saved mapping: %s -> %s\n", shortUrl, longUrl)
 }
 
@@ -84,7 +109,7 @@ func GetLongUrl(shortUrl string, userId string) string {
 
 	dbLongUrl, err := service.db.GetLongURLByShortURLAndUserID(ctx, database.GetLongURLByShortURLAndUserIDParams{
 		ShortUrl: shortUrl,
-		Userid:   userId,
+		UserID:   userId,
 	})
 
 	if err != nil {

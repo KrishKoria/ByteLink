@@ -9,51 +9,67 @@ import (
 	"context"
 )
 
-const getLongURLByShortURL = `-- name: GetLongURLByShortURL :one
-SELECT long_url
-FROM mapping
-WHERE short_url = ?
+const deleteMapping = `-- name: DeleteMapping :exec
+DELETE FROM mappings
+WHERE short_url = ? AND user_id = ?
 `
 
-func (q *Queries) GetLongURLByShortURL(ctx context.Context, shortUrl string) (string, error) {
-	row := q.db.QueryRowContext(ctx, getLongURLByShortURL, shortUrl)
-	var long_url string
-	err := row.Scan(&long_url)
-	return long_url, err
-}
-
-const getLongURLByShortURLAndUserID = `-- name: GetLongURLByShortURLAndUserID :one
-SELECT long_url
-FROM mapping
-WHERE short_url = ? AND userId = ?
-`
-
-type GetLongURLByShortURLAndUserIDParams struct {
+type DeleteMappingParams struct {
 	ShortUrl string
-	Userid   interface{}
+	UserID   interface{}
 }
 
-func (q *Queries) GetLongURLByShortURLAndUserID(ctx context.Context, arg GetLongURLByShortURLAndUserIDParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getLongURLByShortURLAndUserID, arg.ShortUrl, arg.Userid)
-	var long_url string
-	err := row.Scan(&long_url)
-	return long_url, err
+func (q *Queries) DeleteMapping(ctx context.Context, arg DeleteMappingParams) error {
+	_, err := q.db.ExecContext(ctx, deleteMapping, arg.ShortUrl, arg.UserID)
+	return err
+}
+
+const getMappingByShortURLAndUserID = `-- name: GetMappingByShortURLAndUserID :one
+SELECT m.id, m.short_url, u.long_url, m.user_id
+FROM mappings m
+JOIN urls u ON m.url_id = u.id
+WHERE m.short_url = ? AND m.user_id = ?
+LIMIT 1
+`
+
+type GetMappingByShortURLAndUserIDParams struct {
+	ShortUrl string
+	UserID   interface{}
+}
+
+type GetMappingByShortURLAndUserIDRow struct {
+	ID       interface{}
+	ShortUrl string
+	LongUrl  string
+	UserID   interface{}
+}
+
+func (q *Queries) GetMappingByShortURLAndUserID(ctx context.Context, arg GetMappingByShortURLAndUserIDParams) (GetMappingByShortURLAndUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getMappingByShortURLAndUserID, arg.ShortUrl, arg.UserID)
+	var i GetMappingByShortURLAndUserIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.ShortUrl,
+		&i.LongUrl,
+		&i.UserID,
+	)
+	return i, err
 }
 
 const getMappingsByUserID = `-- name: GetMappingsByUserID :many
-SELECT id, short_url, long_url
-FROM mapping
-WHERE userId = ?
+SELECT m.short_url, u.long_url
+FROM mappings m
+JOIN urls u ON m.url_id = u.id
+WHERE m.user_id = ?
 `
 
 type GetMappingsByUserIDRow struct {
-	ID       interface{}
 	ShortUrl string
 	LongUrl  string
 }
 
-func (q *Queries) GetMappingsByUserID(ctx context.Context, userid interface{}) ([]GetMappingsByUserIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getMappingsByUserID, userid)
+func (q *Queries) GetMappingsByUserID(ctx context.Context, userID interface{}) ([]GetMappingsByUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMappingsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +77,7 @@ func (q *Queries) GetMappingsByUserID(ctx context.Context, userid interface{}) (
 	var items []GetMappingsByUserIDRow
 	for rows.Next() {
 		var i GetMappingsByUserIDRow
-		if err := rows.Scan(&i.ID, &i.ShortUrl, &i.LongUrl); err != nil {
+		if err := rows.Scan(&i.ShortUrl, &i.LongUrl); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -76,23 +92,22 @@ func (q *Queries) GetMappingsByUserID(ctx context.Context, userid interface{}) (
 }
 
 const saveMapping = `-- name: SaveMapping :exec
-INSERT INTO mapping (id, short_url, long_url, userId)
-VALUES (?, ?, ?, ?)
+INSERT INTO mappings (id, url_id, short_url, user_id) VALUES (?, ?, ?, ?)
 `
 
 type SaveMappingParams struct {
 	ID       interface{}
+	UrlID    interface{}
 	ShortUrl string
-	LongUrl  string
-	Userid   interface{}
+	UserID   interface{}
 }
 
 func (q *Queries) SaveMapping(ctx context.Context, arg SaveMappingParams) error {
 	_, err := q.db.ExecContext(ctx, saveMapping,
 		arg.ID,
+		arg.UrlID,
 		arg.ShortUrl,
-		arg.LongUrl,
-		arg.Userid,
+		arg.UserID,
 	)
 	return err
 }

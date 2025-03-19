@@ -1,0 +1,9 @@
+-- +goose Up
+CREATE TABLE urls (
+id UUID PRIMARY KEY,
+long_url TEXT NOT NULL UNIQUE,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE urls;

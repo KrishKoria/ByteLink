@@ -4,9 +4,20 @@
 
 package database
 
+import (
+	"database/sql"
+)
+
 type Mapping struct {
-	ID       interface{}
-	ShortUrl string
-	LongUrl  string
-	Userid   interface{}
+	ID        interface{}
+	UrlID     interface{}
+	ShortUrl  string
+	UserID    interface{}
+	CreatedAt sql.NullTime
+}
+
+type Url struct {
+	ID        interface{}
+	LongUrl   string
+	CreatedAt sql.NullTime
 }
