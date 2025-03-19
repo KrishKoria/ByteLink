@@ -20,7 +20,15 @@ func CreateShortURL(c *gin.Context) {
 		})
 	}
 	shortUrl := shortener.GenerateShortURL(request.InitialURL, request.UserID)
-	store.SaveMapping(shortUrl, request.InitialURL, request.UserID)
+	err := store.SaveMapping(shortUrl, request.InitialURL, request.UserID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	host := "http://localhost:8080/"
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Short URL created successfully",

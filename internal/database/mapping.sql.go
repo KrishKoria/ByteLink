@@ -56,6 +56,37 @@ func (q *Queries) GetMappingByShortURLAndUserID(ctx context.Context, arg GetMapp
 	return i, err
 }
 
+const getMappingByUserIDAndUrlID = `-- name: GetMappingByUserIDAndUrlID :one
+SELECT id, short_url, url_id, user_id
+FROM mappings
+WHERE user_id = ? AND url_id = ?
+LIMIT 1
+`
+
+type GetMappingByUserIDAndUrlIDParams struct {
+	UserID interface{}
+	UrlID  interface{}
+}
+
+type GetMappingByUserIDAndUrlIDRow struct {
+	ID       interface{}
+	ShortUrl string
+	UrlID    interface{}
+	UserID   interface{}
+}
+
+func (q *Queries) GetMappingByUserIDAndUrlID(ctx context.Context, arg GetMappingByUserIDAndUrlIDParams) (GetMappingByUserIDAndUrlIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getMappingByUserIDAndUrlID, arg.UserID, arg.UrlID)
+	var i GetMappingByUserIDAndUrlIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.ShortUrl,
+		&i.UrlID,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const getMappingsByUserID = `-- name: GetMappingsByUserID :many
 SELECT m.short_url, u.long_url
 FROM mappings m

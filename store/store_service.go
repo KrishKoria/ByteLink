@@ -53,7 +53,7 @@ func InitializeStoreService() *StoreService {
 	return service
 }
 
-func SaveMapping(shortUrl string, longUrl string, userId string) {
+func SaveMapping(shortUrl string, longUrl string, userId string) error {
 	var urlId uuid.UUID
 	existingId, err := service.db.GetURLIdByLongURL(ctx, longUrl)
 	if err != nil {
@@ -76,8 +76,16 @@ func SaveMapping(shortUrl string, longUrl string, userId string) {
 				panic(fmt.Sprintf("Failed to parse UUID: %v", parseErr))
 			}
 			urlId = parsedUUID
-		} else {
-			panic("Unexpected ID type from database")
+			_, err = service.db.GetMappingByUserIDAndUrlID(ctx, database.GetMappingByUserIDAndUrlIDParams{
+				UserID: userId,
+				UrlID:  urlId,
+			})
+			if err == nil {
+				fmt.Printf("Mapping already exists for user %s and URL %s\n", userId, longUrl)
+				return nil
+			}
+		} else if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("failed to check existing mapping: %w", err)
 		}
 	}
 	mappingId := uuid.New()
@@ -95,6 +103,7 @@ func SaveMapping(shortUrl string, longUrl string, userId string) {
 	service.client.Set(ctx, shortUrl, longUrl, CacheDuration)
 
 	fmt.Printf("Saved mapping: %s -> %s\n", shortUrl, longUrl)
+	return nil
 }
 
 func GetLongUrl(shortUrl string, userId string) string {

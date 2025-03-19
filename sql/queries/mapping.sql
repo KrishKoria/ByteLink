@@ -17,3 +17,9 @@ WHERE m.user_id = ?;
 -- name: DeleteMapping :exec
 DELETE FROM mappings
 WHERE short_url = ? AND user_id = ?;
+
+-- name: GetMappingByUserIDAndUrlID :one
+SELECT id, short_url, url_id, user_id
+FROM mappings
+WHERE user_id = ? AND url_id = ?
+LIMIT 1;
