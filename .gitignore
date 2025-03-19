@@ -9,6 +9,8 @@
 *.dylib
 *.sqlite
 
+bytelink.sqlite
+
 # Test binary, built with `go test -c`
 *.test
 
