@@ -9,7 +9,6 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.StaticFile("/", "./index.html")
 	store.InitializeStoreService()
 
 	r.POST("/create", func(c *gin.Context) {
