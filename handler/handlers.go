@@ -76,3 +76,27 @@ func GetUserURLs(c *gin.Context) {
 	urls := store.GetMappingsByUserID(userId)
 	c.JSON(http.StatusOK, gin.H{"urls": urls})
 }
+
+func DeleteUserURL(c *gin.Context) {
+	shortURL := c.Query("short_url")
+	userID := c.Query("user_id")
+
+	if shortURL == "" || userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "short_url and user_id parameters are required",
+		})
+		return
+	}
+
+	err := store.DeleteMapping(shortURL, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "URL mapping deleted successfully",
+	})
+}

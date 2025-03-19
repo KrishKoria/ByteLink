@@ -9,6 +9,15 @@ import (
 	"context"
 )
 
+const deleteURLByID = `-- name: DeleteURLByID :exec
+DELETE FROM urls WHERE id = ?
+`
+
+func (q *Queries) DeleteURLByID(ctx context.Context, id interface{}) error {
+	_, err := q.db.ExecContext(ctx, deleteURLByID, id)
+	return err
+}
+
 const getLongURLByShortURL = `-- name: GetLongURLByShortURL :one
 SELECT u.long_url
 FROM mappings m
@@ -42,6 +51,35 @@ func (q *Queries) GetLongURLByShortURLAndUserID(ctx context.Context, arg GetLong
 	var long_url string
 	err := row.Scan(&long_url)
 	return long_url, err
+}
+
+const getOrphanedURLs = `-- name: GetOrphanedURLs :many
+SELECT u.id FROM urls u
+LEFT JOIN mappings m ON u.id = m.url_id
+WHERE m.id IS NULL
+`
+
+func (q *Queries) GetOrphanedURLs(ctx context.Context) ([]interface{}, error) {
+	rows, err := q.db.QueryContext(ctx, getOrphanedURLs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []interface{}
+	for rows.Next() {
+		var id interface{}
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getURLById = `-- name: GetURLById :one

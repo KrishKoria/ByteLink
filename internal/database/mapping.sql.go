@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const countMappingsByUrlID = `-- name: CountMappingsByUrlID :one
+SELECT COUNT(*) FROM mappings WHERE url_id = ?
+`
+
+func (q *Queries) CountMappingsByUrlID(ctx context.Context, urlID interface{}) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMappingsByUrlID, urlID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteMapping = `-- name: DeleteMapping :exec
 DELETE FROM mappings
 WHERE short_url = ? AND user_id = ?
@@ -21,6 +32,21 @@ type DeleteMappingParams struct {
 
 func (q *Queries) DeleteMapping(ctx context.Context, arg DeleteMappingParams) error {
 	_, err := q.db.ExecContext(ctx, deleteMapping, arg.ShortUrl, arg.UserID)
+	return err
+}
+
+const deleteMappingByShortURLAndUserID = `-- name: DeleteMappingByShortURLAndUserID :exec
+DELETE FROM mappings
+WHERE short_url = ? AND user_id = ?
+`
+
+type DeleteMappingByShortURLAndUserIDParams struct {
+	ShortUrl string
+	UserID   interface{}
+}
+
+func (q *Queries) DeleteMappingByShortURLAndUserID(ctx context.Context, arg DeleteMappingByShortURLAndUserIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteMappingByShortURLAndUserID, arg.ShortUrl, arg.UserID)
 	return err
 }
 

@@ -23,3 +23,10 @@ SELECT id, short_url, url_id, user_id
 FROM mappings
 WHERE user_id = ? AND url_id = ?
 LIMIT 1;
+
+-- name: DeleteMappingByShortURLAndUserID :exec
+DELETE FROM mappings
+WHERE short_url = ? AND user_id = ?;
+
+-- name: CountMappingsByUrlID :one
+SELECT COUNT(*) FROM mappings WHERE url_id = ?;

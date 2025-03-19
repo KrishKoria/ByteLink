@@ -180,3 +180,32 @@ func GetMappingsByUserID(userId string) []URLMapping {
 
 	return result
 }
+
+func DeleteMapping(shortURL string, userID string) error {
+	_, err := service.db.GetMappingByShortURLAndUserID(ctx, database.GetMappingByShortURLAndUserIDParams{
+		ShortUrl: shortURL,
+		UserID:   userID,
+	})
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("no mapping found for short URL %s and user %s", shortURL, userID)
+		}
+		return fmt.Errorf("failed to check mapping existence: %w", err)
+	}
+
+	err = service.db.DeleteMappingByShortURLAndUserID(ctx, database.DeleteMappingByShortURLAndUserIDParams{
+		ShortUrl: shortURL,
+		UserID:   userID,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to delete mapping: %w", err)
+	}
+
+	userCacheKey := fmt.Sprintf("%s:%s", shortURL, userID)
+	service.client.Del(ctx, userCacheKey)
+	service.client.Del(ctx, shortURL)
+
+	return nil
+}
