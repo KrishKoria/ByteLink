@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/KrishKoria/ByteLink/miscellaneous"
 	"github.com/KrishKoria/ByteLink/shortener"
 	"github.com/KrishKoria/ByteLink/store"
 	"github.com/gin-gonic/gin"
@@ -99,4 +100,8 @@ func DeleteUserURL(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "URL mapping deleted successfully",
 	})
+}
+
+func GetCleanupStatus() miscellaneous.CleanupStatus {
+	return miscellaneous.CleanupStatus{}
 }

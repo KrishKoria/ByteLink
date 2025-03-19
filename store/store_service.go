@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/KrishKoria/ByteLink/internal/database"
+	"github.com/KrishKoria/ByteLink/miscellaneous"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/redis/go-redis/v9"
@@ -13,8 +14,9 @@ import (
 )
 
 type StoreService struct {
-	client *redis.Client
-	db     *database.Queries
+	client          *redis.Client
+	db              *database.Queries
+	cleanupStopChan chan bool
 }
 
 type URLMapping struct {
@@ -35,6 +37,7 @@ func InitializeStoreService() *StoreService {
 		Password: "",
 		DB:       0,
 	})
+
 	pong, err := redisClient.Ping(ctx).Result()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to connect to Redis: %v", err))
@@ -50,6 +53,8 @@ func InitializeStoreService() *StoreService {
 	service.db = queries
 	fmt.Println("Connected to SQLite database")
 
+	stopCleanupChan := miscellaneous.StartCleanupJob(service, CacheDuration)
+	service.cleanupStopChan = stopCleanupChan
 	return service
 }
 
@@ -208,4 +213,28 @@ func DeleteMapping(shortURL string, userID string) error {
 	service.client.Del(ctx, shortURL)
 
 	return nil
+}
+
+func (s *StoreService) GetOrphanedURLs(ctx context.Context) ([]string, error) {
+	orphanedURLsRaw, err := s.db.GetOrphanedURLs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+	result := make([]string, len(orphanedURLsRaw))
+	for i, urlID := range orphanedURLsRaw {
+		switch id := urlID.(type) {
+		case string:
+			result[i] = id
+		case uuid.UUID:
+			result[i] = id.String()
+		default:
+			result[i] = fmt.Sprintf("%v", id)
+		}
+	}
+
+	return result, nil
+}
+
+func (s *StoreService) DeleteURLByID(ctx context.Context, id string) error {
+	return s.db.DeleteURLByID(ctx, id)
 }

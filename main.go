@@ -5,6 +5,7 @@ import (
 	"github.com/KrishKoria/ByteLink/handler"
 	"github.com/KrishKoria/ByteLink/store"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func main() {
@@ -31,6 +32,10 @@ func main() {
 
 	r.GET("/api/urls", func(c *gin.Context) {
 		handler.GetUserURLs(c)
+	})
+
+	r.GET("/api/admin/cleanup-status", func(c *gin.Context) {
+		c.JSON(http.StatusOK, handler.GetCleanupStatus())
 	})
 
 	r.DELETE("/api/url", func(c *gin.Context) {
