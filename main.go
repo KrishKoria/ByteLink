@@ -42,6 +42,10 @@ func main() {
 		handler.DeleteUserURL(c)
 	})
 
+	r.GET("/api/url/stats", func(c *gin.Context) {
+		handler.GetURLStatsHandler(c)
+	})
+
 	err := r.Run(":8080")
 	if err != nil {
 		panic(fmt.Sprintf("Failed to start server: %v", err))

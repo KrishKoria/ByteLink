@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"context"
+	"fmt"
 	"github.com/KrishKoria/ByteLink/miscellaneous"
 	"github.com/KrishKoria/ByteLink/shortener"
 	"github.com/KrishKoria/ByteLink/store"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type CreationRequest struct {
@@ -44,6 +47,14 @@ func HandleRedirect(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
 		return
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := store.IncrementClickCount(ctx, shortUrl)
+		if err != nil {
+			fmt.Printf("Failed to increment click count: %v\n", err)
+		}
+	}()
 	c.Redirect(http.StatusFound, initialURL)
 }
 
@@ -104,4 +115,24 @@ func DeleteUserURL(c *gin.Context) {
 
 func GetCleanupStatus() miscellaneous.CleanupStatus {
 	return miscellaneous.CleanupStatus{}
+}
+
+func GetURLStatsHandler(c *gin.Context) {
+	shortURL := c.Query("short_url")
+	userID := c.Query("user_id")
+
+	if shortURL == "" || userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing required parameters",
+		})
+		return
+	}
+
+	stats, err := store.GetURLStats(c, shortURL, userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Stats not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
 }

@@ -17,6 +17,7 @@
  - Unique constraint handling to prevent duplicate mappings
  - Automatic cleanup of orphaned URLs via background job
  - Status monitoring for background maintenance tasks
+ - Click tracking and analytics for shortened URLs
 
  ## Installation
 
@@ -33,7 +34,10 @@
 
  3. Set up SQLite and Redis:
     - Ensure Redis is installed and running on `127.0.0.1:6379`
-    - SQLite database will be created automatically
+    - SQLite database will be created automatically after first run, but you must run the goose migrations from the sql/schema directory
+    ```sh
+    goose -dir sql/schema sqlite3 "file:byteLink.db" up
+    ```
 
  ## Usage
 
@@ -79,6 +83,18 @@
    - **Method:** `GET`
    - **Response:** Returns all URL mappings for the specified user
 
+ - **Get URL Stats**
+   - **URL:** `/api/url/stats?short_url={shortURL}&user_id={userID}`
+   - **Method:** `GET`
+   - **Response:** Returns statistics for the URL including click count
+     ```json
+     {
+         "short_url": "abc123",
+         "long_url": "https:www.example.com",
+         "click_count": 42
+     }
+     ```
+
  - **Delete URL Mapping**
    - **URL:** `/api/url`
    - **Method:** `DELETE`
@@ -108,7 +124,7 @@
 
  The service uses SQLite with the following schema:
  - URLs table: Stores long URLs with unique IDs
- - Mappings table: Associates short URLs with URL IDs and user IDs
+ - Mappings table: Associates short URLs with URL IDs and user IDs, and tracks click counts
 
  ## Database Maintenance
 
@@ -121,6 +137,15 @@
  - Non-blocking implementation that doesn't affect user operations
  - Provides status monitoring through admin API endpoint
  - Logs job execution details for troubleshooting
+
+ ## Analytics
+
+ ByteLink provides basic analytics for shortened URLs:
+
+ - Tracks the number of times each shortened URL is accessed
+ - View click counts through the stats API endpoint
+ - Non-blocking implementation that doesn't slow down redirects
+ - Data stored in the database for persistence
 
  ## Monitoring
 

@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const deleteURLByID = `-- name: DeleteURLByID :exec
@@ -102,6 +103,31 @@ func (q *Queries) GetURLIdByLongURL(ctx context.Context, longUrl string) (interf
 	var id interface{}
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getURLStatsForUser = `-- name: GetURLStatsForUser :one
+SELECT m.short_url, u.long_url, m.click_count
+FROM mappings m
+JOIN urls u ON m.url_id = u.id
+WHERE m.short_url = ? AND m.user_id = ?
+`
+
+type GetURLStatsForUserParams struct {
+	ShortUrl string
+	UserID   interface{}
+}
+
+type GetURLStatsForUserRow struct {
+	ShortUrl   string
+	LongUrl    string
+	ClickCount sql.NullInt64
+}
+
+func (q *Queries) GetURLStatsForUser(ctx context.Context, arg GetURLStatsForUserParams) (GetURLStatsForUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getURLStatsForUser, arg.ShortUrl, arg.UserID)
+	var i GetURLStatsForUserRow
+	err := row.Scan(&i.ShortUrl, &i.LongUrl, &i.ClickCount)
+	return i, err
 }
 
 const saveURL = `-- name: SaveURL :exec

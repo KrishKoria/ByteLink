@@ -148,6 +148,17 @@ func (q *Queries) GetMappingsByUserID(ctx context.Context, userID interface{}) (
 	return items, nil
 }
 
+const incrementClickCount = `-- name: IncrementClickCount :exec
+UPDATE mappings
+SET click_count = click_count + 1
+WHERE short_url = ?
+`
+
+func (q *Queries) IncrementClickCount(ctx context.Context, shortUrl string) error {
+	_, err := q.db.ExecContext(ctx, incrementClickCount, shortUrl)
+	return err
+}
+
 const saveMapping = `-- name: SaveMapping :exec
 INSERT INTO mappings (id, url_id, short_url, user_id) VALUES (?, ?, ?, ?)
 `

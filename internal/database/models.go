@@ -9,11 +9,12 @@ import (
 )
 
 type Mapping struct {
-	ID        interface{}
-	UrlID     interface{}
-	ShortUrl  string
-	UserID    interface{}
-	CreatedAt sql.NullTime
+	ID         interface{}
+	UrlID      interface{}
+	ShortUrl   string
+	UserID     interface{}
+	CreatedAt  sql.NullTime
+	ClickCount sql.NullInt64
 }
 
 type Url struct {

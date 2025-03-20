@@ -23,6 +23,11 @@ type URLMapping struct {
 	ShortURL string `json:"short_url"`
 	LongURL  string `json:"long_url"`
 }
+type URLStats struct {
+	ShortURL   string `json:"short_url"`
+	LongURL    string `json:"long_url"`
+	ClickCount int64  `json:"click_count"`
+}
 
 var (
 	ctx     = context.Background()
@@ -237,4 +242,33 @@ func (s *StoreService) GetOrphanedURLs(ctx context.Context) ([]string, error) {
 
 func (s *StoreService) DeleteURLByID(ctx context.Context, id string) error {
 	return s.db.DeleteURLByID(ctx, id)
+}
+
+func GetURLStats(ctx context.Context, shortURL string, userID string) (URLStats, error) {
+	stats, err := service.db.GetURLStatsForUser(ctx, database.GetURLStatsForUserParams{
+		ShortUrl: shortURL,
+		UserID:   userID,
+	})
+
+	if err != nil {
+		return URLStats{}, fmt.Errorf("failed to get URL stats: %w", err)
+	}
+	var clickCount int64
+	if stats.ClickCount.Valid {
+		clickCount = stats.ClickCount.Int64
+	}
+
+	return URLStats{
+		ShortURL:   stats.ShortUrl,
+		LongURL:    stats.LongUrl,
+		ClickCount: clickCount,
+	}, nil
+}
+
+func IncrementClickCount(ctx context.Context, shortURL string) error {
+	err := service.db.IncrementClickCount(ctx, shortURL)
+	if err != nil {
+		return fmt.Errorf("failed to increment click count: %w", err)
+	}
+	return nil
 }

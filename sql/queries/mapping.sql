@@ -30,3 +30,8 @@ WHERE short_url = ? AND user_id = ?;
 
 -- name: CountMappingsByUrlID :one
 SELECT COUNT(*) FROM mappings WHERE url_id = ?;
+
+-- name: IncrementClickCount :exec
+UPDATE mappings
+SET click_count = click_count + 1
+WHERE short_url = ?;

@@ -28,3 +28,9 @@ DELETE FROM urls WHERE id = ?;
 SELECT u.id FROM urls u
 LEFT JOIN mappings m ON u.id = m.url_id
 WHERE m.id IS NULL;
+
+-- name: GetURLStatsForUser :one
+SELECT m.short_url, u.long_url, m.click_count
+FROM mappings m
+JOIN urls u ON m.url_id = u.id
+WHERE m.short_url = ? AND m.user_id = ?;
