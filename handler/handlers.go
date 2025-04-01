@@ -113,8 +113,15 @@ func DeleteUserURL(c *gin.Context) {
 	})
 }
 
-func GetCleanupStatus() miscellaneous.CleanupStatus {
-	return miscellaneous.CleanupStatus{}
+func GetCleanupStatus(c *gin.Context) {
+	status := miscellaneous.CleanupStatus{
+		LastRunTime:        time.Now(),
+		TotalURLsRemoved:   0,
+		IsRunning:          true,
+		RunIntervalMinutes: 60,
+	}
+
+	c.JSON(http.StatusOK, status)
 }
 
 func GetURLStatsHandler(c *gin.Context) {

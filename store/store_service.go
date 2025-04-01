@@ -16,6 +16,7 @@ import (
 type StoreService struct {
 	client          *redis.Client
 	db              *database.Queries
+	rawDB           *sql.DB
 	cleanupStopChan chan bool
 }
 
@@ -56,11 +57,19 @@ func InitializeStoreService() *StoreService {
 	}
 	queries := database.New(sqlDB)
 	service.db = queries
+	service.rawDB = sqlDB
 	fmt.Println("Connected to SQLite database")
 
 	stopCleanupChan := miscellaneous.StartCleanupJob(service, CacheDuration)
 	service.cleanupStopChan = stopCleanupChan
 	return service
+}
+
+func GetDBConn() *sql.DB {
+	if service == nil || service.rawDB == nil {
+		panic("Store service not initialized")
+	}
+	return service.rawDB
 }
 
 func SaveMapping(shortUrl string, longUrl string, userId string) error {

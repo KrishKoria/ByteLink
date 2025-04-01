@@ -1,0 +1,26 @@
+-- +goose Up
+
+-- name: users_table :exec
+CREATE TABLE IF NOT EXISTS users (
+ id TEXT PRIMARY KEY,
+ email TEXT UNIQUE NOT NULL,
+ name TEXT NOT NULL,
+ password TEXT NOT NULL,
+ provider TEXT NOT NULL,
+ provider_id TEXT NOT NULL,
+ email_verified BOOLEAN DEFAULT FALSE,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- name: sessions_table :exec
+CREATE TABLE IF NOT EXISTS sessions (
+token TEXT PRIMARY KEY,
+user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+expires_at TIMESTAMP NOT NULL,
+created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS users;

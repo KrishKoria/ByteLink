@@ -6,6 +6,7 @@ package database
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Mapping struct {
@@ -17,8 +18,27 @@ type Mapping struct {
 	ClickCount sql.NullInt64
 }
 
+type Session struct {
+	Token     string
+	UserID    string
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
 type Url struct {
 	ID        interface{}
 	LongUrl   string
 	CreatedAt sql.NullTime
+}
+
+type User struct {
+	ID            string
+	Email         string
+	Name          string
+	Password      sql.NullString
+	Provider      string
+	ProviderID    sql.NullString
+	EmailVerified sql.NullBool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
